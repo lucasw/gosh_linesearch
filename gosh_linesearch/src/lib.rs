@@ -25,7 +25,7 @@
 //! let mut step = 1.0;
 //! let count = linesearch()
 //!     .with_initial_step(1.5) // the default is 1.0
-//!     .with_algorithm("BackTracking") // the default is MoreThuente
+//!     .with_algorithm(LineSearchAlgorithm::BackTrackingWolfe) // the default is MoreThuente
 //!     .find(5, |a: f64, out: &mut Output| {
 //!         // restore position
 //!         x.veccpy(&x_k);
@@ -44,7 +44,7 @@
 //! let ls = linesearch()
 //!     .with_max_iterations(5) // the default is 10
 //!     .with_initial_step(1.5) // the default is 1.0
-//!     .with_algorithm("BackTracking") // the default is MoreThuente
+//!     .with_algorithm(LineSearchAlgorithm::BackTrackingWolfe) // the default is MoreThuente
 //!     .find_iter(|a: f64, out: &mut Output| {
 //!         // restore position
 //!         x.veccpy(&x_k);
@@ -178,7 +178,7 @@ where
 /// let mut step = 1.0;
 /// let count = linesearch()
 ///     .with_initial_step(1.5) // the default is 1.0
-///     .with_algorithm("BackTracking") // the default is MoreThuente
+///     .with_algorithm(LineSearchAlgorithm::BackTrackingWolfe) // the default is MoreThuente
 ///     .find(5, |a: f64, out: &mut Output| {
 ///         // restore position
 ///         x.veccpy(&x_k);
@@ -197,7 +197,7 @@ where
 /// let ls = linesearch()
 ///     .with_max_iterations(5) // the default is 10
 ///     .with_initial_step(1.5) // the default is 1.0
-///     .with_algorithm("BackTracking") // the default is MoreThuente
+///     .with_algorithm(LineSearchAlgorithm::BackTrackingWolfe) // the default is MoreThuente
 ///     .find_iter(|a: f64, out: &mut Output| {
 ///         // restore position
 ///         x.veccpy(&x_k);
@@ -252,15 +252,8 @@ impl LineSearch {
     }
 
     /// Set line search algorithm. The default is MoreThuente algorithm.
-    pub fn with_algorithm(mut self, s: &str) -> Self {
-        self.algorithm = match s {
-            "MoreThuente" => LineSearchAlgorithm::MoreThuente,
-            "BackTracking" | "BackTrackingWolfe" => LineSearchAlgorithm::BackTrackingWolfe,
-            "BackTrackingStrongWolfe" => LineSearchAlgorithm::BackTrackingWolfe,
-            "BackTrackingArmijo" => LineSearchAlgorithm::BackTrackingArmijo,
-            _ => unimplemented!(),
-        };
-
+    pub fn with_algorithm(mut self, algorithm: LineSearchAlgorithm) -> Self {
+        self.algorithm = algorithm;
         self
     }
 }
@@ -464,7 +457,7 @@ fn test_ls_iter() -> Result<(), LineSearchError> {
     // let mut step = 1.0;
     let ls = linesearch()
         .with_initial_step(1.5) // the default is 1.0
-        .with_algorithm("BackTracking") // the default is MoreThuente
+        .with_algorithm(LineSearchAlgorithm::BackTrackingWolfe) // the default is MoreThuente
         .find_iter(|_a: f64, out: &mut Output| {
             // restore position
             // x.veccpy(&x_k);
