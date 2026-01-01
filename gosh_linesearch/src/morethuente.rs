@@ -279,23 +279,23 @@ mod mcstep {
     /// # Arguments
     ///
     /// * x, fx, and dx: variables which specify the step, the function, and the
-    /// derivative at the best step obtained so far. The derivative must be
-    /// negative in the direction of the step, that is, dx and t-x must have
-    /// opposite signs. On output these parameters are updated appropriately.
+    ///   derivative at the best step obtained so far. The derivative must be
+    ///   negative in the direction of the step, that is, dx and t-x must have
+    ///   opposite signs. On output these parameters are updated appropriately.
     ///
     /// * y, fy, and dy: variables which specify the step, the function, and
-    /// the derivative at the other endpoint of the interval of uncertainty. On
-    /// output these parameters are updated appropriately.
+    ///   the derivative at the other endpoint of the interval of uncertainty. On
+    ///   output these parameters are updated appropriately.
     ///
     /// * t, ft, and dt: variables which specify the step, the function, and the
-    /// derivative at the current step. If bracket is set true then on input t
-    /// must be between x and y. On output t is set to the new step.
+    ///   derivative at the current step. If bracket is set true then on input t
+    ///   must be between x and y. On output t is set to the new step.
     ///
     /// * tmin, tmax: lower and upper bounds for the step.
     ///
     /// * `brackt`: Specifies if a minimizer has been bracketed. If the
-    /// minimizer has not been bracketed then on input brackt must be set false.
-    /// If the minimizer is bracketed then on output `brackt` is set true.
+    ///   minimizer has not been bracketed then on input brackt must be set false.
+    ///   If the minimizer is bracketed then on output `brackt` is set true.
     ///
     pub(crate) fn update_trial_interval(
         x: &mut f64,
@@ -584,7 +584,7 @@ impl crate::LineSearchFindNext for MoreThuente {
     where
         E: FnMut(f64) -> Result<(f64, f64), LineSearchError>,
     {
-        mcsrch::find_next(&self, stp, phi)
+        mcsrch::find_next(self, stp, phi)
     }
 }
 // api:1 ends here

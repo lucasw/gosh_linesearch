@@ -135,7 +135,7 @@ impl crate::LineSearchFindNext for BackTracking {
     where
         E: FnMut(f64) -> Result<(f64, f64), LineSearchError>,
     {
-        find_next(&self, stp, phi)
+        find_next(self, stp, phi)
     }
 }
 // api:1 ends here

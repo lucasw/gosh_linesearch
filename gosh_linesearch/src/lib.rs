@@ -150,6 +150,7 @@ pub enum LineSearchCondition {
     StrongWolfe,
 }
 
+/*
 /// A trait for performing line search
 pub(crate) trait LineSearchFind<E>
 where
@@ -164,6 +165,7 @@ where
     fn find(&mut self, step: &mut f64, phi: E) -> Result<usize, LineSearchError>;
 }
 // base:1 ends here
+*/
 
 // [[file:../linesearch.note::*builder][builder:1]]
 /// A unified interface to line search methods.
@@ -289,8 +291,7 @@ pub struct Output {
 // 给定NAN数据, 避免未处理output可能的副作用
 impl Default for Output {
     fn default() -> Self {
-        use std::f64::NAN;
-        Self { fx: NAN, gx: NAN }
+        Self { fx: f64::NAN, gx: f64::NAN }
     }
 }
 
@@ -415,7 +416,7 @@ impl LineSearch {
                     lsa::BackTrackingArmijo => LineSearchCondition::Armijo,
                     _ => todo!(),
                 };
-                let mut ls = LineSearchIter {
+                let ls = LineSearchIter {
                     step: self.initial_step,
                     eval: crate::LineSearchEval::new(phi),
                     algo: crate::backtracking::BackTracking::default()
