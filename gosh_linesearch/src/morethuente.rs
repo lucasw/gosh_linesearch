@@ -74,17 +74,21 @@ mod mcsrch {
 
     /// Find a step which satisfies a sufficient decrease condition and a curvature
     /// condition (strong wolfe conditions).
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// - stp: a nonnegative variable. on input stp contains an initial estimate of a
     ///   satisfactory step. on output stp contains the final estimate.
     /// - phi: a callback function to evaluate value and gradient along search direction.
-    /// 
+    ///
     /// # Return
-    /// 
+    ///
     /// - the number of function calls
-    pub(super) fn find_next<Efn>(vars: &MoreThuente, stp: &mut f64, mut phi: Efn) -> Result<bool, LineSearchError>
+    pub(super) fn find_next<Efn>(
+        vars: &MoreThuente,
+        stp: &mut f64,
+        mut phi: Efn,
+    ) -> Result<bool, LineSearchError>
     where
         Efn: FnMut(f64) -> Result<(f64, f64), LineSearchError>,
     {
@@ -116,7 +120,10 @@ mod mcsrch {
             // Set the minimum and maximum steps to correspond to the
             // present interval of uncertainty.
             let (stmin, stmax) = if brackt {
-                (if stx <= sty { stx } else { sty }, if stx >= sty { stx } else { sty })
+                (
+                    if stx <= sty { stx } else { sty },
+                    if stx >= sty { stx } else { sty },
+                )
             } else {
                 (stx, *stp + 4.0 * (*stp - stx))
             };
@@ -143,11 +150,11 @@ mod mcsrch {
                 // Rounding errors prevent further progress.
                 return Err(LineSearchError::RoundingError);
                 /*
-                bail!(
-                    "A rounding error occurred; alternatively, no line-search step
-satisfies the sufficient decrease and curvature conditions."
-                );
-                */
+                                bail!(
+                                    "A rounding error occurred; alternatively, no line-search step
+                satisfies the sufficient decrease and curvature conditions."
+                                );
+                                */
                 // return Ok(false);
             }
 
@@ -326,7 +333,7 @@ mod mcstep {
             } else if tmax < tmin {
                 // Incorrect tmin and tmax specified.
                 //bail!("A logic error occurred; alternatively, the interval of uncertainty became too small.");
-                return Err(LineSearchError::TMaxLessThanMin)
+                return Err(LineSearchError::TMaxLessThanMin);
             }
         }
 
@@ -501,7 +508,17 @@ fn cubic_minimizer(cm: &mut f64, u: f64, fu: f64, du: f64, v: f64, fv: f64, dv: 
 ///  * xmin:   The minimum value.
 ///  * xmax:   The maximum value.
 #[inline]
-fn cubic_minimizer2(cm: &mut f64, u: f64, fu: f64, du: f64, v: f64, fv: f64, dv: f64, xmin: f64, xmax: f64) {
+fn cubic_minimizer2(
+    cm: &mut f64,
+    u: f64,
+    fu: f64,
+    du: f64,
+    v: f64,
+    fv: f64,
+    dv: f64,
+    xmin: f64,
+    xmax: f64,
+) {
     let d = v - u;
     let theta = (fu - fv) * 3.0 / d + du + dv;
     let mut p = theta.abs();

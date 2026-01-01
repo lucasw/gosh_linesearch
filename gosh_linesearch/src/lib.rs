@@ -1,17 +1,17 @@
 // [[file:../linesearch.note::*header][header:1]]
 //! Line search, also called one-dimensional search, refers to an optimization
 //! procedure for univariable functions.
-//! 
+//!
 //! # Available algorithms
-//! 
+//!
 //! * MoreThuente
 //! * BackTracking
 //! * BackTrackingArmijo
 //! * BackTrackingWolfe
 //! * BackTrackingStrongWolfe
-//! 
+//!
 //! # References
-//! 
+//!
 //! * Sun, W.; Yuan, Y. Optimization Theory and Methods: Nonlinear Programming, 1st
 //!   ed.; Springer, 2006.
 //! * Nocedal, J.; Wright, S. Numerical Optimization; Springer Science & Business
@@ -21,7 +21,7 @@
 //!
 //! ```ignore
 //! use line::linesearch;
-//! 
+//!
 //! let mut step = 1.0;
 //! let count = linesearch()
 //!     .with_initial_step(1.5) // the default is 1.0
@@ -40,7 +40,7 @@
 //!         // return any user defined data
 //!         Ok(())
 //!     })?;
-//! 
+//!
 //! let ls = linesearch()
 //!     .with_max_iterations(5) // the default is 10
 //!     .with_initial_step(1.5) // the default is 1.0
@@ -59,7 +59,7 @@
 //!         // return any user defined data
 //!         Ok(())
 //!     })?;
-//! 
+//!
 //! for success in ls {
 //!     if success {
 //!         //
@@ -172,7 +172,7 @@ where
 ///
 /// ```ignore
 /// use line::linesearch;
-/// 
+///
 /// let mut step = 1.0;
 /// let count = linesearch()
 ///     .with_initial_step(1.5) // the default is 1.0
@@ -191,7 +191,7 @@ where
 ///         // return any user defined data
 ///         Ok(())
 ///     })?;
-/// 
+///
 /// let ls = linesearch()
 ///     .with_max_iterations(5) // the default is 10
 ///     .with_initial_step(1.5) // the default is 1.0
@@ -210,7 +210,7 @@ where
 ///         // return any user defined data
 ///         Ok(())
 ///     })?;
-/// 
+///
 /// for success in ls {
 ///     if success {
 ///         //
@@ -425,7 +425,10 @@ impl LineSearch {
                 bt_iter = ls.into();
             }
         }
-        bt_iter.into_iter().flatten().chain(mt_iter.into_iter().flatten())
+        bt_iter
+            .into_iter()
+            .flatten()
+            .chain(mt_iter.into_iter().flatten())
     }
 
     /// Perform line search with a callback function `phi` to evaluate function
