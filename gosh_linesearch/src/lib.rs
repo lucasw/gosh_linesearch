@@ -291,7 +291,10 @@ pub struct Output {
 // 给定NAN数据, 避免未处理output可能的副作用
 impl Default for Output {
     fn default() -> Self {
-        Self { fx: f64::NAN, gx: f64::NAN }
+        Self {
+            fx: f64::NAN,
+            gx: f64::NAN,
+        }
     }
 }
 
@@ -458,11 +461,11 @@ impl LineSearch {
 // [[file:../linesearch.note::*test][test:1]]
 #[test]
 fn test_ls_iter() -> Result<(), LineSearchError> {
-    let mut step = 1.0;
+    // let mut step = 1.0;
     let ls = linesearch()
         .with_initial_step(1.5) // the default is 1.0
         .with_algorithm("BackTracking") // the default is MoreThuente
-        .find_iter(|a: f64, out: &mut Output| {
+        .find_iter(|_a: f64, out: &mut Output| {
             // restore position
             // x.veccpy(&x_k);
             // update position with step along d

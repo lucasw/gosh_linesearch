@@ -133,8 +133,11 @@ mod mcsrch {
 
             // If an unusual termination is to occur then let
             // stp be the lowest point obtained so far.
-            if brackt && (*stp <= stmin || stmax <= *stp || max_iterations <= count + 1)
-                || brackt && stmax - stmin <= vars.xtol * stmax
+            if (stmax - stmin <= vars.xtol * stmax
+                || max_iterations <= count + 1
+                || stmax <= *stp
+                || *stp <= stmin)
+                && brackt
             {
                 *stp = stx
             }
