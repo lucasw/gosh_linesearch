@@ -80,9 +80,9 @@ impl BackTracking {
 ///
 /// * Return true if an optimal step has been found.
 ///
-fn find_next<E>(vars: &BackTracking, stp: &mut f64, mut phi: E) -> Result<bool>
+fn find_next<E>(vars: &BackTracking, stp: &mut f64, mut phi: E) -> Result<bool, LineSearchError>
 where
-    E: FnMut(f64) -> Result<(f64, f64)>,
+    E: FnMut(f64) -> Result<(f64, f64), LineSearchError>,
 {
     use self::LineSearchCondition::*;
 
@@ -116,11 +116,13 @@ where
 
     // The step is the minimum value.
     if *stp < vars.min_step {
-        bail!("The line-search step became smaller than LineSearch::min_step.");
+        // bail!("The line-search step became smaller than LineSearch::min_step.");
+        return Err(LineSearchError::StepLessThanMinStep);
     }
     // The step is the maximum value.
     if *stp > vars.max_step {
-        bail!("The line-search step became larger than LineSearch::max_step.");
+        // bail!("The line-search step became larger than LineSearch::max_step.");
+        return Err(LineSearchError::MaxSteps);
     }
 
     Ok(false)
@@ -129,9 +131,9 @@ where
 
 // [[file:../linesearch.note::*api][api:1]]
 impl crate::LineSearchFindNext for BackTracking {
-    fn find_next<E>(&self, stp: &mut f64, phi: E) -> Result<bool>
+    fn find_next<E>(&self, stp: &mut f64, phi: E) -> Result<bool, LineSearchError>
     where
-        E: FnMut(f64) -> Result<(f64, f64)>,
+        E: FnMut(f64) -> Result<(f64, f64), LineSearchError>,
     {
         find_next(&self, stp, phi)
     }

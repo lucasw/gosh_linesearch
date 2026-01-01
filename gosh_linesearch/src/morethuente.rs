@@ -84,9 +84,9 @@ mod mcsrch {
     /// # Return
     /// 
     /// - the number of function calls
-    pub(super) fn find_next<E>(vars: &MoreThuente, stp: &mut f64, mut phi: E) -> Result<bool>
+    pub(super) fn find_next<Efn>(vars: &MoreThuente, stp: &mut f64, mut phi: Efn) -> Result<bool, LineSearchError>
     where
-        E: FnMut(f64) -> Result<(f64, f64)>,
+        Efn: FnMut(f64) -> Result<(f64, f64), LineSearchError>,
     {
         let (finit, dginit) = phi(0.0)?;
 
@@ -141,24 +141,30 @@ mod mcsrch {
             if brackt && (*stp <= stmin || stmax <= *stp) {
                 // FIXME: return Err or not?
                 // Rounding errors prevent further progress.
+                return Err(LineSearchError::RoundingError);
+                /*
                 bail!(
                     "A rounding error occurred; alternatively, no line-search step
 satisfies the sufficient decrease and curvature conditions."
                 );
+                */
                 // return Ok(false);
             }
 
             if brackt && stmax - stmin <= vars.xtol * stmax {
-                bail!("Relative width of the interval of uncertainty is at most xtol.");
+                // bail!("Relative width of the interval of uncertainty is at most xtol.");
+                return Err(LineSearchError::RelativeWidth);
             }
 
             if *stp == vars.max_step && f <= ftest1 && dg <= dgtest {
                 // The step is the maximum value.
-                bail!("The line-search step became larger than LineSearch::max_step.");
+                // bail!("The line-search step became larger than LineSearch::max_step.");
+                return Err(LineSearchError::MaxSteps);
             }
             if *stp == vars.min_step && (ftest1 < f || dgtest <= dg) {
                 // The step is the minimum value.
-                bail!("The line-search step became smaller than LineSearch::min_step.");
+                // bail!("The line-search step became smaller than LineSearch::min_step.");
+                return Err(LineSearchError::StepLessThanMinStep);
             }
 
             if f <= ftest1 && dg.abs() <= vars.gtol * -dginit {
@@ -297,7 +303,7 @@ mod mcstep {
         tmin: f64,
         tmax: f64,
         brackt: &mut bool,
-    ) -> Result<()> {
+    ) -> Result<(), LineSearchError> {
         // fsigndiff
         let dsign = dt * (*dx / (*dx).abs()) < 0.0;
         // minimizer of an interpolated cubic.
@@ -311,13 +317,16 @@ mod mcstep {
         if *brackt {
             if *t <= x.min(*y) || x.max(*y) <= *t {
                 // The trival value t is out of the interval.
-                bail!("The line-search step went out of the interval of uncertainty.");
+                // bail!("The line-search step went out of the interval of uncertainty.");
+                return Err(LineSearchError::Uncertain);
             } else if 0.0 <= *dx * (*t - *x) {
                 // The function must decrease from x.
-                bail!("The current search direction increases the objective function value.");
+                // bail!("The current search direction increases the objective function value.");
+                return Err(LineSearchError::ObjectiveIncrease);
             } else if tmax < tmin {
                 // Incorrect tmin and tmax specified.
-                bail!("A logic error occurred; alternatively, the interval of uncertainty became too small.");
+                //bail!("A logic error occurred; alternatively, the interval of uncertainty became too small.");
+                return Err(LineSearchError::TMaxLessThanMin)
             }
         }
 
@@ -554,9 +563,9 @@ fn quard_minimizer2(qm: &mut f64, u: f64, du: f64, v: f64, dv: f64) {
 pub use self::mcsrch::MoreThuente;
 
 impl crate::LineSearchFindNext for MoreThuente {
-    fn find_next<E>(&self, stp: &mut f64, phi: E) -> Result<bool>
+    fn find_next<E>(&self, stp: &mut f64, phi: E) -> Result<bool, LineSearchError>
     where
-        E: FnMut(f64) -> Result<(f64, f64)>,
+        E: FnMut(f64) -> Result<(f64, f64), LineSearchError>,
     {
         mcsrch::find_next(&self, stp, phi)
     }

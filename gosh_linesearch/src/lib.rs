@@ -69,19 +69,23 @@
 //! }
 //!```
 
-use crate::common::*;
-// header:1 ends here
+use core::result::Result;
 
 // [[file:../linesearch.note::*mods][mods:1]]
 mod backtracking;
 mod morethuente;
 // mods:1 ends here
 
-// [[file:../linesearch.note::*common][common:1]]
-pub(crate) mod common {
-    pub use gut::prelude::*;
+#[derive(Debug)]
+pub enum LineSearchError {
+    StepLessThanMinStep,
+    MaxSteps,
+    Uncertain,
+    ObjectiveIncrease,
+    TMaxLessThanMin,
+    RoundingError,
+    RelativeWidth,
 }
-// common:1 ends here
 
 // [[file:../linesearch.note::*algorithm][algorithm:1]]
 /// Line search algorithms.
@@ -157,7 +161,7 @@ where
     /// `step` is a positive scalar representing the step size along search
     /// direction. phi is an univariable function of `step` for evaluating the
     /// value and the gradient projected onto search direction.
-    fn find(&mut self, step: &mut f64, phi: E) -> Result<usize>;
+    fn find(&mut self, step: &mut f64, phi: E) -> Result<usize, LineSearchError>;
 }
 // base:1 ends here
 
@@ -266,9 +270,9 @@ use std::fmt::Debug;
 // 定义线搜索函数计算核心
 pub trait LineSearchFindNext {
     // 执行单步line search. 通过返回值可判断当前位置是否满足线搜索条件
-    fn find_next<E>(&self, stp: &mut f64, phi: E) -> Result<bool>
+    fn find_next<E>(&self, stp: &mut f64, phi: E) -> Result<bool, LineSearchError>
     where
-        E: FnMut(f64) -> Result<(f64, f64)>;
+        E: FnMut(f64) -> Result<(f64, f64), LineSearchError>;
 }
 
 // Input is initial step for performing line search
@@ -306,7 +310,7 @@ where
 /// T is user defined data
 pub struct LineSearchEval<E, T>
 where
-    E: FnMut(Input, &mut Output) -> Result<T>,
+    E: FnMut(Input, &mut Output) -> Result<T, LineSearchError>,
     T: Debug + Clone,
 {
     eval_fn: E,
@@ -315,7 +319,7 @@ where
 
 impl<E, T> LineSearchEval<E, T>
 where
-    E: FnMut(Input, &mut Output) -> Result<T>,
+    E: FnMut(Input, &mut Output) -> Result<T, LineSearchError>,
     T: Debug + Clone,
 {
     pub fn new(f: E) -> Self {
@@ -326,7 +330,7 @@ where
     }
 
     /// 调用回调函数, 同时保留用户自定义进度数据
-    pub fn call(&mut self, x: f64) -> Result<(f64, f64)> {
+    pub fn call(&mut self, x: f64) -> Result<(f64, f64), LineSearchError> {
         let mut out = Output::default();
         self.user_data = (self.eval_fn)(x, &mut out)?.into();
         Ok((out.fx, out.gx))
@@ -336,7 +340,7 @@ where
 pub struct LineSearchIter<A, E, T>
 where
     A: LineSearchFindNext,
-    E: FnMut(Input, &mut Output) -> Result<T>,
+    E: FnMut(Input, &mut Output) -> Result<T, LineSearchError>,
     T: Debug + Clone,
 {
     step: f64,
@@ -347,7 +351,7 @@ where
 impl<A, E, T> Iterator for LineSearchIter<A, E, T>
 where
     A: LineSearchFindNext,
-    E: FnMut(Input, &mut Output) -> Result<T>,
+    E: FnMut(Input, &mut Output) -> Result<T, LineSearchError>,
     T: Debug + Clone,
 {
     type Item = Progress<T>;
@@ -388,7 +392,7 @@ impl LineSearch {
     /// version of `find` method.
     fn find_iter<E, T>(&self, phi: E) -> impl Iterator<Item = Progress<T>>
     where
-        E: FnMut(Input, &mut Output) -> Result<T>,
+        E: FnMut(Input, &mut Output) -> Result<T, LineSearchError>,
         T: Debug + Clone,
     {
         use self::LineSearchAlgorithm as lsa;
@@ -433,7 +437,7 @@ impl LineSearch {
     ///
     pub fn find<E, T>(&self, m: usize, phi: E) -> bool
     where
-        E: FnMut(Input, &mut Output) -> Result<T>,
+        E: FnMut(Input, &mut Output) -> Result<T, LineSearchError>,
         T: Debug + Clone,
     {
         for x in self.find_iter(phi).take(m) {
@@ -441,7 +445,7 @@ impl LineSearch {
                 return true;
             }
         }
-        warn!("ls: optimal step not found!");
+        // warn!("ls: optimal step not found!");
         false
     }
 }
@@ -449,7 +453,7 @@ impl LineSearch {
 
 // [[file:../linesearch.note::*test][test:1]]
 #[test]
-fn test_ls_iter() -> Result<()> {
+fn test_ls_iter() -> Result<(), LineSearchError> {
     let mut step = 1.0;
     let ls = linesearch()
         .with_initial_step(1.5) // the default is 1.0

@@ -18,10 +18,6 @@ description = "Line search algorithms for geometry optimization"
 license = "MIT OR Apache-2.0"
 resolver = "2"
 
-[dependencies.gut]
-version = "0.3"
-package = "gchemol-gut"
-
 [dev-dependencies]
 
 [features]
