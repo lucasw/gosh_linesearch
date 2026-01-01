@@ -274,6 +274,7 @@ pub trait LineSearchFindNext {
 pub type Input = f64;
 
 // 需要搜索步长对应的函数值及梯度
+#[derive(Debug)]
 pub struct Output {
     /// The value of function at step `x`
     pub fx: f64,
@@ -481,3 +482,94 @@ fn test_ls_iter() -> Result<(), LineSearchError> {
     Ok(())
 }
 // test:1 ends here
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn closest_point_on_circle() {
+        use std::f64::consts::PI;
+
+        struct CirclePoint {
+            cx: f64,
+            cy: f64,
+            radius: f64,
+            px: f64,
+            py: f64,
+        }
+
+        impl CirclePoint {
+            fn dist_sq_at_angle(&self, angle: f64) -> f64 {
+                let x = self.cx + self.radius * angle.cos();
+                let y = self.cy + self.radius * angle.sin();
+                let ex = self.px - x;
+                let ey = self.py - y;
+                let out_of_range = {
+                    if angle > 1.0 * PI {
+                        angle - 1.0 * PI
+                    } else if angle < -1.0 * PI {
+                        -angle - 1.0 * PI
+                    } else {
+                        0.0
+                    }
+                };
+                ex * ex + ey * ey + out_of_range
+            }
+
+            fn eval(&self, angle: f64, out: &mut Output) -> Result<(), LineSearchError> {
+                let dist0 = self.dist_sq_at_angle(angle);
+                let angle_step = 0.0001;
+                let dist1 = self.dist_sq_at_angle(angle + angle_step);
+                out.fx = dist0;
+                out.gx = (dist1 - dist0) / angle_step;
+                Ok(())
+            }
+        }
+
+        let cp = CirclePoint {
+            cx: 0.0,
+            cy: 0.0,
+            radius: 1.0,
+            px: 2.0,
+            py: 2.0,
+        };
+        // expect to find angle 0.785398163397 (when px == py)
+
+        if true {
+            for i in 0..100 {
+                let angle = i as f64 * 0.1 - PI / 4.0;
+                let mut out = Output::default();
+                let rv = cp.eval(angle, &mut out);
+                println!(
+                    "{angle:.3} -> {:.6} {:.6} {:.6} {rv:?}",
+                    out.fx.sqrt(),
+                    out.fx,
+                    out.gx
+                );
+            }
+        }
+
+        // TODO(lucasw) this doesn't seem to be working
+        let ls = linesearch()
+            .with_initial_step(0.001) // the default is 1.0
+            .with_algorithm(LineSearchAlgorithm::BackTrackingWolfe) // the default is MoreThuente
+            .find_iter(|angle: f64, out: &mut Output| {
+                // .find(100, |angle: f64, out: &mut Output| {
+                let rv = cp.eval(angle, out)?;
+                println!(
+                    "angle {angle:.9} -> {:.6} {:.6} {:.6} {rv:?}",
+                    out.fx.sqrt(),
+                    out.fx,
+                    out.gx
+                );
+                Ok(())
+            })
+            .take(100);
+
+        // println!("{}", ls);
+        for (ind, v) in ls.enumerate() {
+            println!("{ind}: [{v:?}]");
+        }
+    }
+}
