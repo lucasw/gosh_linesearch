@@ -1,0 +1,21 @@
+# [[file:linesearch.note::6b3a6b41][6b3a6b41]]
+[package]
+name = "gosh-linesearch"
+version = "0.1.0"
+edition = "2021"
+description = "Line search algorithms for geometry optimization"
+license = "MIT OR Apache-2.0"
+authors = ["Wenping Guo <ybyygu@gmail.com>"]
+
+[dependencies]
+gut = {version="0.3", package="gchemol-gut"}
+
+# workspace independent
+[workspace]
+
+[dev-dependencies]
+
+[features]
+# for adhoc hacking
+adhoc = []
+# 6b3a6b41 ends here
